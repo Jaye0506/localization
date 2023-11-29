@@ -4,3 +4,5 @@ pandas
 pydeck
 streamlit
 openpyxl
+pyecharts
+streamlit_echarts
