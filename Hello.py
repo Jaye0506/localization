@@ -17,9 +17,9 @@ def run():
     """
     )
     data = {
-        "序号": ["1", "2", "3"],
-        "工具": ["Format_String", "Questionnaire Backoffice", "Similar_Extract"],
-        "说明": ["文本参数格式化", "问卷后台", "同质化文本抽取"],
+        "序号": ["1", "2", "3", "4"],
+        "工具": ["Font_Viewer", "Format_String", "Questionnaire Backoffice", "Similar_Extract"],
+        "说明": ["字体检测", "文本参数格式化", "问卷后台", "同质化文本抽取"],
     }
     # 在 Streamlit 应用中创建一个表格
     st.table(data)
