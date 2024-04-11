@@ -133,8 +133,8 @@ terminology_file = st.file_uploader("请上传术语表文件", type=["xlsx", "x
 if terminology_file:
     terminology_df = save_upload_file(terminology_file)
     # 显示结果
-    # st.write("术语表数据：")
-    # st.write(terminology_df)
+    st.write("术语表数据：")
+    st.write(terminology_df)
     if not terminology_df.empty:
         term_df_col1, term_df_col2 = st.columns(2)
         with term_df_col1:
@@ -164,6 +164,6 @@ if terminology_file:
                     raise ValueError('暂不支持该语种，请联系支撑组！')
                 else:
                     result_df = check_glossaries(check_df, check_source_name, check_target_name, glossary)
-                    st.write('术语检查成功，请下载csv文件到本地进行操作！')
+                    st.write('术语检查成功，请下载csv文件到本地粘贴结果！')
                     st.write(result_df)
                     
