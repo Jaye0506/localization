@@ -15,10 +15,9 @@ def save_upload_file(uploaded_file):
             # 获取压缩包内所有文件的列表
             zipped_file_namelist = zipped_file.namelist()
             excel_files = [f for f in zipped_file_namelist if f.endswith('.xlsx')]
-
+            all_dataframes = []
             for excel_file_name in excel_files:
                 with zipped_file.open(excel_file_name) as excel_file:
-                    all_dataframes = []
                     # 读取Excel文件中的每个工作表
                     xls = pd.ExcelFile(excel_file)
                     for sheet_name in xls.sheet_names:
