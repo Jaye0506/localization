@@ -133,8 +133,8 @@ terminology_file = st.file_uploader("请上传术语表文件", type=["xlsx", "x
 if terminology_file:
     terminology_df = save_upload_file(terminology_file)
     # 显示结果
-    st.write("术语表数据：")
-    st.write(terminology_df)
+    # st.write("术语表数据：")
+    # st.write(terminology_df)
     if not terminology_df.empty:
         term_df_col1, term_df_col2 = st.columns(2)
         with term_df_col1:
