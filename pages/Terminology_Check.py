@@ -47,12 +47,13 @@ def save_upload_file(uploaded_file):
         return df
 
 def deal_df(df):
-    df = df.drop(df.index[:3])
-    pattern = r"\n\{\[@.*?@\]\}"
-    df.iloc[0] = df.iloc[0].replace(pattern, "", regex=True)
-    df.columns = df.iloc[0]
-    df = df[1:]
-    df.reset_index(drop=True, inplace=True)
+    if df.iloc[3,0] == '#':
+        df = df.drop(df.index[:3])
+        pattern = r"\n\{\[@.*?@\]\}"
+        df.iloc[0] = df.iloc[0].replace(pattern, "", regex=True)
+        df.columns = df.iloc[0]
+        df = df[1:]
+        df.reset_index(drop=True, inplace=True)
     return df
 
 def get_check_type(column_name):
@@ -160,7 +161,6 @@ if terminology_file:
                 # 判断语种使用那种方法进行检测
                 check_type = get_check_type(check_target_name)
                 if check_type == CHECK_TYPE_ERROR:
-                    st.write('暂不支持该语种，请联系支撑组！')
                     raise ValueError('暂不支持该语种，请联系支撑组！')
                 else:
                     result_df = check_glossaries(check_df, check_source_name, check_target_name, glossary)
