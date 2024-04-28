@@ -99,14 +99,14 @@ def check_glossaries(df, source_col_name, target_col_name, glossary_dict):
     results_col_name_case = f'{target_col_name}术语检查_大小写'
     df[results_col_name] = ''
     df[results_col_name_case] = ''
+    # 判断语种使用的检测类型
+    source_check_type = get_check_type(source_col_name)
+    target_check_type = get_check_type(target_col_name)
     for index, row in df.iterrows():
         check_results = []
         check_results_case = ''
         source_text = str(row[source_col_name])
         target_text = str(row[target_col_name])
-        # 判断语种使用的检测类型
-        source_check_type = get_check_type(source_col_name)
-        target_check_type = get_check_type(target_col_name)
         if source_check_type == CHECK_TYPE_ERROR or target_check_type == CHECK_TYPE_ERROR:
             raise ValueError('语种信息出错，请联系支撑组！')
         if source_check_type == CHECK_TYPE_1:
@@ -159,11 +159,11 @@ if terminology_file:
                 # 抽取术语表
                 glossary = load_glossaries(terminology_df, terminology_source_name, terminology_target_name)
                 # 判断语种使用那种方法进行检测
-                check_type = get_check_type(check_target_name)
-                if check_type == CHECK_TYPE_ERROR:
-                    raise ValueError('暂不支持该语种，请联系支撑组！')
-                else:
-                    result_df = check_glossaries(check_df, check_source_name, check_target_name, glossary)
-                    st.write('术语检查成功，请下载csv文件到本地粘贴结果！')
-                    st.write(result_df)
+                # check_type = get_check_type(check_target_name)
+                # if check_type == CHECK_TYPE_ERROR:
+                #     raise ValueError('暂不支持该语种，请联系支撑组！')
+                # else:
+                result_df = check_glossaries(check_df, check_source_name, check_target_name, glossary)
+                st.write('术语检查成功，请下载csv文件到本地粘贴结果！')
+                st.write(result_df)
                     
