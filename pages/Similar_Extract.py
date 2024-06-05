@@ -49,32 +49,67 @@ def save_upload_file(uploaded_file):
     
 def get_patterns():
     patterns = {
-        'p1':r'\{.+?\}',
-        'p2':r'\d+', 
-        'p3':r'[零一二三四五六七八九十百千万亿]+',
-        'p4':r'<[^>]+>',
-        'p5':r'\[[^\]]+\]'
+        'p1':{
+            'regex': '100%',
+            'description': '完全重复'
+        },
+        'p2':{
+            'regex': r'\d+',
+            'description': '数字不同'
+        },
+        'p3':{
+            'regex': r'[零一二三四五六七八九十百千万亿]+',
+            'description': '中文数字不同'
+        },
+        'p4':{
+            'regex': r'\{.+?\}',
+            'description': '{}内不同'
+        },
+        'p5':{
+            'regex': r'<[^>]+>',
+            'description': '<>内不同'
+        },
+        'p6':{
+            'regex': r'\[[^\]]+\]',
+            'description': '[]内不同'
+        },
     }
     return patterns
 
 def extract_similar_text(df, source_column:str, pattern_names:list=['p1','p2','p3','p4','p5']):
     patterns = get_patterns()
-
-    combined_patterns = '|'.join([patterns[name] for name in pattern_names if name in patterns])
-    df['Replaced_Text'] = df[source_column].str.replace(combined_patterns, 'X', regex=True)
-
-    df['Matched_Patterns'] = ''
-    for name in pattern_names:
-        if name in patterns:
-            pattern = patterns[name]
-            # df['Matched_Patterns'] += df[source_column].str.contains(pattern).replace({True: patterns[name] + ' ', False: ''})
-            df['Matched_Patterns'] = df.apply(lambda x: pattern if x['Matched_Patterns'] == '' and pd.notnull(x[source_column]) and bool(re.search(pattern, x[source_column])) else x['Matched_Patterns'], axis=1)
-    # 对于没有匹配模式的文本，将 'Matched_Patterns' 列填充为 '100%'
-    df['Matched_Patterns'] = df['Matched_Patterns'].replace('', '100%')
-
+    df = df.copy()
+    # 移除包含 NaN 的行
+    df = df.dropna(subset=[source_column])
+    # 计算同质化文本的总字数
+    characters_total = df[source_column].str.len().sum()
+    # 标记完全重复的文本
+    handle_p1 = 'p1' in pattern_names and 'p1' in patterns
+    if handle_p1:
+        duplicated_mask = df.duplicated(subset=[source_column], keep=False)
+        df['matched_patterns'] = df.apply(lambda x: patterns['p1']['description'] if duplicated_mask[x.name] else '', axis=1)
+    else:
+        df['matched_patterns'] = ''
+        df = df.drop_duplicates(subset=[source_column])
+    # 正则替换
+    def replace_and_record_patterns(text, matched_patterns):
+        pattern_list = []
+        if matched_patterns:
+            pattern_list.append(matched_patterns)
+        for pattern_name in pattern_names:
+            if pattern_name in patterns:
+                pattern_regex = patterns[pattern_name]['regex']
+                pattern_description = patterns[pattern_name]['description']
+                if pattern_name != 'p1' and matched_patterns=='' and re.search(pattern_regex, text):
+                    text = re.sub(pattern_regex, f'【{pattern_name}】', text)
+                    pattern_list.append(pattern_description)
+        return text, ';'.join(pattern_list)
+    df['replaced_text'], df['matched_patterns'] = zip(
+        *df.apply(lambda row: replace_and_record_patterns(row[source_column], row['matched_patterns']), axis=1)
+    )
     # 将处理后的文本进行分组，以找出重复出现的模式
     pattern_dict = defaultdict(list)
-    for original_text, replaced_text in zip(df[source_column], df['Replaced_Text']):
+    for original_text, replaced_text in zip(df[source_column], df['replaced_text']):
         pattern_dict[replaced_text].append(original_text)
 
     similar_text_total = 0
@@ -82,17 +117,16 @@ def extract_similar_text(df, source_column:str, pattern_names:list=['p1','p2','p
     for replaced_text, original_texts in pattern_dict.items():
         if len(original_texts) > 1:
             # 从第二次出现的文本开始计数
-            similar_text_total += (len(original_texts) - 1) * len(replaced_text)
+            # similar_text_total += (len(original_texts) - 1) * len(replaced_text)
+            similar_text_total += sum(len(text) for text in original_texts[1:])
             matching_rows = df[df[source_column].isin(original_texts)]
             # print(f"{replaced_text}:{original_texts}")
             # 将找到的行添加到新的 DataFrame 中
             similar_text_data = pd.concat([similar_text_data, matching_rows], ignore_index=True)
 
-    # 计算同质化文本的总字数
-    characters_total = df[source_column].str.len().sum()
     # 计算同质化文本率
     similar_text_rate = round((similar_text_total / characters_total) * 100, 2)
-
+    
     print(f"同质化文本字数:{similar_text_total}\n原文列总字数:{characters_total}\n同质化文本率:{similar_text_rate}%", )
     return similar_text_data, characters_total, similar_text_total, similar_text_rate
 
@@ -112,13 +146,15 @@ if uploaded_file:
         column_name = st.selectbox('请选择抽取同质化的文本列', merged_dataframe.columns)
         patterns = get_patterns()
         explanations = {
-            'p1': "匹配大括号内的内容",
-            'p2': "匹配数字",
-            'p3': "匹配中文数字",
-            'p4': "匹配尖括号内的HTML标签",
-            'p5': "匹配方括号内的内容"
+            'p1': "匹配完全重复的内容",
+            'p2': "匹配大括号内的内容",
+            'p3': "匹配数字",
+            'p4': "匹配中文数字",
+            'p5': "匹配尖括号内的HTML标签",
+            'p6': "匹配方括号内的内容"
         }
-        df = pd.DataFrame(list(patterns.items()), columns=['Pattern', 'Regex'])
+        
+        df = pd.DataFrame([(k, v['regex']) for k, v in patterns.items()], columns=['Pattern', 'Regex'])
         df['Explanation'] = df['Pattern'].map(explanations)
         pattern_names = st.multiselect('选择您需要匹配的模式', explanations.keys(), default=explanations.keys())
         st.table(df)
