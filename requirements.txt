@@ -6,3 +6,4 @@ streamlit
 openpyxl
 pyecharts
 streamlit_echarts
+snapshot_selenium
