@@ -85,7 +85,8 @@ for i, label in selected_columns:
             divide_option = st.selectbox('选择基于哪一列拆分模块',['无']+list([col for col in sheet_data.columns if col != label]),key=f'divide_box_{i}')
     with col2:  
         radio_select = st.radio('是否为多选题',['否','是'],key=f'radio_{i}')
-        download_btn = st.button('导出', key=f'download_btn_{i}')
+        # TODO 图片导出
+        # download_btn = st.button('导出', key=f'download_btn_{i}')
     with col3:
         if radio_select=='否':
             column = sheet_data[label].dropna().value_counts().index.to_numpy().tolist()
@@ -130,22 +131,22 @@ for i, label in selected_columns:
         chart = st_line(sheet_data,label)
     
 
-    save_directory = "pages/images"
-    base_name, extension = os.path.splitext(current_file_name)
-    sub_directory = os.path.join(save_directory, base_name)
-    if not os.path.exists(sub_directory):
-        os.makedirs(sub_directory)
+    # save_directory = "pages/images"
+    # base_name, extension = os.path.splitext(current_file_name)
+    # sub_directory = os.path.join(save_directory, base_name)
+    # if not os.path.exists(sub_directory):
+    #     os.makedirs(sub_directory)
     # 导出
-    if download_btn:
-        if chart:
-            # 检查是否需要拆分选项
-            if not divide_option or divide_option == '无':
-                file_name = f"{label}_【{selection_box}】.png"
-            else:
-                file_name = f"{label}_【{selection_box}_拆分】_{divide_option}.png"
-            file_path = os.path.join(sub_directory, file_name)
-            print('file_path', file_path)
-            make_snapshot(snapshot, chart.render(), file_path)
-            st.success(f"图表已经保存至本地目录'{sub_directory}': {file_name}")
+    # if download_btn:
+    #     if chart:
+    #         # 检查是否需要拆分选项
+    #         if not divide_option or divide_option == '无':
+    #             file_name = f"{label}_【{selection_box}】.png"
+    #         else:
+    #             file_name = f"{label}_【{selection_box}_拆分】_{divide_option}.png"
+    #         file_path = os.path.join(sub_directory, file_name)
+    #         print('file_path', file_path)
+    #         make_snapshot(snapshot, chart.render(), file_path)
+    #         st.success(f"图表已经保存至本地目录'{sub_directory}': {file_name}")
         
   
